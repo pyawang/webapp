@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公路旅行導航 App</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        .info-panel {
+            position: absolute; top: 10px; left: 10px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.9); padding: 15px;
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            max-width: 200px;
+        }
+        .nav-btn {
+            display: inline-block; margin-top: 8px; padding: 8px 12px;
+            background: #4285F4; color: white; text-decoration: none;
+            border-radius: 4px; font-weight: bold; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="info-panel">
+        <h3 style="margin:0">🚗 公路旅行</h3>
+        <p id="status" style="font-size: 13px; color: #555; margin: 5px 0;">讀取中...</p>
+        <button onclick="locateUser()" style="width: 100%; cursor:pointer;">📍 我的位置</button>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([23.97, 120.98], 7);
+        let userMarker, routeLine;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OSM'
+        }).addTo(map);
+
+        // 讀取資料
+        fetch('points.json')
+            .then(res => res.json())
+            .then(data => {
+                const coords = [];
+                
+                const geojsonLayer = L.geoJSON(data, {
+                    onEachFeature: (feature, layer) => {
+                        const [lng, lat] = feature.geometry.coordinates;
+                        coords.push([lat, lng]); // Leaflet 是 [lat, lng]
+
+                        // 導航按鈕：點擊標記彈出
+                        const googleNavUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                        layer.bindPopup(`
+                            <strong>${feature.properties.name}</strong><br>
+                            <a class="nav-btn" href="${googleNavUrl}" target="_blank">Google 導航</a>
+                        `);
+                    }
+                }).addTo(map);
+
+                // --- 1. 景點連線 ---
+                if (coords.length > 1) {
+                    routeLine = L.polyline(coords, {
+                        color: '#ff4757',
+                        weight: 4,
+                        opacity: 0.7,
+                        dashArray: '10, 10' // 虛線效果
+                    }).addTo(map);
+                }
+
+                map.fitBounds(geojsonLayer.getBounds(), { padding: [50, 50] });
+                document.getElementById('status').innerText = `已載入 ${data.features.length} 個停靠點`;
+            });
+
+        // --- 2. 定位功能 ---
+        function locateUser() {
+            map.locate({setView: true, maxZoom: 15});
+        }
+
+        map.on('locationfound', function(e) {
+            if (userMarker) map.removeLayer(userMarker);
+            userMarker = L.circleMarker(e.latlng, {
+                radius: 8, fillOpacity: 1, color: 'white', fillColor: '#1e90ff', weight: 2
+            }).addTo(map).bindPopup("你在這裡").openPopup();
+        });
+
+        map.on('locationerror', function(e) {
+            alert("無法獲取定位權限或訊號不佳");
+        });
+    </script>
+</body>
+</html>
