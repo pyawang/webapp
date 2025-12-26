@@ -2,118 +2,129 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>公路旅行地圖</title>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/854/854878.png">
-    <title>公路旅行導航 App</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, sans-serif; }
-        #map { height: 100vh; width: 100%; }
-        /* 讓介面更像手機 App */
-        .info-panel {
-            top: auto; bottom: 20px; left: 50%;
+        /* 1. 基礎重置 */
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #f0f0f2; }
+        #map { height: 100%; width: 100%; z-index: 1; }
+
+        /* 2. 底部資訊面板 (針對手機優化) */
+        .bottom-sheet {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
             transform: translateX(-50%);
-            width: 90%; max-width: 400px;
-            border-radius: 15px;
-        }
-
-        /* 景點彈窗優化 */
-        .leaflet-popup-content-wrapper {
-            border-radius: 12px;
-            padding: 5px;
-        }
-
-        .nav-btn {
-            display: block;
-            background: #007AFF; /* iOS 藍 */
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            z-index: 1000;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
             text-align: center;
-            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .bottom-sheet h2 { margin: 0 0 10px 0; font-size: 1.2rem; color: #333; }
+        
+        /* 3. 導航按鈕樣式 */
+        .nav-link {
+            display: block;
+            background: #007AFF; /* 經典 iOS 藍 */
+            color: white !important;
             text-decoration: none;
-            font-size: 16px;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .nav-link:active { background: #0056b3; }
+
+        /* 4. 定位按鈕 (右上角) */
+        .locate-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div class="info-panel">
-        <h3 style="margin:0">🚗 公路旅行</h3>
-        <p id="status" style="font-size: 13px; color: #555; margin: 5px 0;">讀取中...</p>
-        <button onclick="locateUser()" style="width: 100%; cursor:pointer;">📍 我的位置</button>
-    </div>
+    <button class="locate-btn" onclick="locateUser()">📍</button>
 
     <div id="map"></div>
 
+    <div id="infoSheet" class="bottom-sheet" style="display: none;">
+        <h2 id="placeName">請點選景點</h2>
+        <div id="placeDesc" style="color: #666; font-size: 0.9rem; margin-bottom: 10px;"></div>
+        <a id="navBtn" href="#" target="_blank" class="nav-link">開始 Google 導航</a>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const map = L.map('map').setView([23.97, 120.98], 7);
-        let userMarker, routeLine;
+        const map = L.map('map', { zoomControl: false }).setView([23.97, 120.98], 7);
+        let userMarker;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OSM'
-        }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // 讀取資料
         fetch('points.json')
             .then(res => res.json())
             .then(data => {
-                const coords = [];
-                
-                const geojsonLayer = L.geoJSON(data, {
+                const markers = L.geoJSON(data, {
                     onEachFeature: (feature, layer) => {
-                        const [lng, lat] = feature.geometry.coordinates;
-                        coords.push([lat, lng]); // Leaflet 是 [lat, lng]
-
-                        // 導航按鈕：點擊標記彈出
-                        const googleNavUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-                        layer.bindPopup(`
-                            <strong>${feature.properties.name}</strong><br>
-                            <a class="nav-btn" href="${googleNavUrl}" target="_blank">Google 導航</a>
-                        `);
+                        layer.on('click', (e) => {
+                            // 當點擊標記時，不顯示 Popup，而是更新底部的 Bottom Sheet
+                            showDetails(feature);
+                            L.DomEvent.stopPropagation(e); // 防止觸發地圖點擊
+                        });
                     }
                 }).addTo(map);
-
-                // --- 1. 景點連線 ---
-                if (coords.length > 1) {
-                    routeLine = L.polyline(coords, {
-                        color: '#ff4757',
-                        weight: 4,
-                        opacity: 0.7,
-                        dashArray: '10, 10' // 虛線效果
-                    }).addTo(map);
-                }
-
-                map.fitBounds(geojsonLayer.getBounds(), { padding: [50, 50] });
-                document.getElementById('status').innerText = `已載入 ${data.features.length} 個停靠點`;
+                map.fitBounds(markers.getBounds(), { padding: [50, 100] });
             });
 
-        // --- 2. 定位功能 ---
+        function showDetails(feature) {
+            const sheet = document.getElementById('infoSheet');
+            const [lng, lat] = feature.geometry.coordinates;
+            
+            document.getElementById('placeName').innerText = feature.properties.name;
+            document.getElementById('navBtn').href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+            
+            sheet.style.display = 'block';
+            map.panTo([lat, lng]); // 地圖自動中心對準景點
+        }
+
+        // 點擊地圖空白處隱藏面板
+        map.on('click', () => {
+            document.getElementById('infoSheet').style.display = 'none';
+        });
+
         function locateUser() {
             map.locate({setView: true, maxZoom: 15});
         }
 
-        map.on('locationfound', function(e) {
+        map.on('locationfound', (e) => {
             if (userMarker) map.removeLayer(userMarker);
-            userMarker = L.circleMarker(e.latlng, {
-                radius: 8, fillOpacity: 1, color: 'white', fillColor: '#1e90ff', weight: 2
-            }).addTo(map).bindPopup("你在這裡").openPopup();
+            userMarker = L.circleMarker(e.latlng, { radius: 8, color: 'white', fillColor: '#007AFF', fillOpacity: 1, weight: 3 }).addTo(map);
         });
-
-        map.on('locationerror', function(e) {
-            alert("無法獲取定位權限或訊號不佳");
-        });
-        function flyToStore(lat, lng) {
-            map.flyTo([lat, lng], 16, {
-                animate: true,
-                duration: 1.5
-            });
-        }
-        
     </script>
 </body>
 </html>
