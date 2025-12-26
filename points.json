@@ -84,6 +84,19 @@
             "geometry": {
                 "type": "Point",
                 "coordinates": [
+                    120.9405061,
+                    24.468369
+                ]
+            },
+            "properties": {
+                "name": "虎山溫泉會館(湯之島)-泰安溫泉"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
                     120.969282,
                     24.4701358
                 ]

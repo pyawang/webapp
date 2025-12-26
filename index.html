@@ -3,21 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/854/854878.png">
     <title>公路旅行導航 App</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: -apple-system, sans-serif; }
         #map { height: 100vh; width: 100%; }
+        /* 讓介面更像手機 App */
         .info-panel {
-            position: absolute; top: 10px; left: 10px; z-index: 1000;
-            background: rgba(255, 255, 255, 0.9); padding: 15px;
-            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            max-width: 200px;
+            top: auto; bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            border-radius: 15px;
         }
+
+        /* 景點彈窗優化 */
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            padding: 5px;
+        }
+
         .nav-btn {
-            display: inline-block; margin-top: 8px; padding: 8px 12px;
-            background: #4285F4; color: white; text-decoration: none;
-            border-radius: 4px; font-weight: bold; text-align: center;
+            display: block;
+            background: #007AFF; /* iOS 藍 */
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 10px;
+            text-decoration: none;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -89,6 +107,13 @@
         map.on('locationerror', function(e) {
             alert("無法獲取定位權限或訊號不佳");
         });
+        function flyToStore(lat, lng) {
+            map.flyTo([lat, lng], 16, {
+                animate: true,
+                duration: 1.5
+            });
+        }
+        
     </script>
 </body>
 </html>

@@ -179,6 +179,15 @@
       </Point>
     </Placemark>
     <Placemark>
+      <name>虎山溫泉會館(湯之島)-泰安溫泉</name>
+      <styleUrl>#icon-1899-0288D1-nodesc</styleUrl>
+      <Point>
+        <coordinates>
+          120.9405061,24.468369,0
+        </coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
       <name>泰安吉娃斯民宿</name>
       <styleUrl>#icon-1603-E65100-nodesc</styleUrl>
       <Point>
