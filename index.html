@@ -205,6 +205,50 @@
                 // 再畫滑動吧
                 buildCarousel(data); 
             });
+
+        async function getGoogleTravelTime(origin, destination) {
+            const apiKey = 'AIzaSyDu_kRXn8bpHuDSVCxeqqTsqsXcbuuxss8';
+            // 這裡將 mode 改為 motorcycling (機車模式)
+            const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin.lat},${origin.lng}&destinations=${destination.lat},${destination.lng}&mode=motorcycling&key=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'OK') {
+                    const element = data.rows[0].elements[0];
+                    // 檢查是否成功抓到資料
+                    if (element.status === 'OK') {
+                        return {
+                            duration: element.duration.text, // 例如 "12 分鐘"
+                            distance: element.distance.text  // 例如 "4.5 公里"
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error("機車導航資料請求失敗", error);
+                return null;
+            }
+        }
+
+        map.on('locationfound', async (e) => {
+            const userLocation = e.latlng;
+            const cards = document.querySelectorAll('.spot-card');
+            
+            // 遍歷所有卡片，更新時間
+            for (let card of cards) {
+                // 從卡片或 feature 中取得目標經緯度 (假設你存放在 dataset 中)
+                const destLat = card.dataset.lat;
+                const destLng = card.dataset.lng;
+
+                const info = await getGoogleTravelTime(userLocation, {lat: destLat, lng: destLng});
+                
+                if (info) {
+                    card.querySelector('.time-info').innerText = `🚲 騎行約需：${info.duration}`;
+                    card.querySelector('.dist-info').innerText = `📍 距離：${info.distance}`;
+                }
+            }
+        });
     </script>
 </body>
 </html>
