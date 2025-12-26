@@ -11,7 +11,8 @@
                 ]
             },
             "properties": {
-                "name": "輪胎城重型機車 松山店 Motor Rental Town"
+                "name": "輪胎城重型機車 松山店 Motor Rental Town",
+                "open_hours": "10:00-22:00"
             }
         },
         {
@@ -37,7 +38,8 @@
                 ]
             },
             "properties": {
-                "name": "正榮傳統豆花"
+                "name": "正榮傳統豆花",
+                "open_hours": "13:00-21:00"
             }
         },
         {
@@ -50,7 +52,8 @@
                 ]
             },
             "properties": {
-                "name": "關西仙草博物館"
+                "name": "關西仙草博物館",
+                "open_hours": "09:30-17:30"
             }
         },
         {
@@ -63,7 +66,8 @@
                 ]
             },
             "properties": {
-                "name": "山吹舍"
+                "name": "山吹舍",
+                "open_hours": "12:00-18:00"
             }
         },
         {
@@ -76,7 +80,8 @@
                 ]
             },
             "properties": {
-                "name": "洗水坑豆腐街"
+                "name": "洗水坑豆腐街",
+                "open_hours": "10:00-17:00"
             }
         },
         {
@@ -89,7 +94,8 @@
                 ]
             },
             "properties": {
-                "name": "虎山溫泉會館(湯之島)-泰安溫泉"
+                "name": "虎山溫泉會館(湯之島)-泰安溫泉",
+                "open_hours": "08:00-23:00"
             }
         },
         {

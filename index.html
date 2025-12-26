@@ -65,6 +65,33 @@
             cursor: pointer;
             font-size: 20px;
         }
+        /* 橫向滑動容器 */
+        .carousel-container {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            overflow-x: auto;
+            padding: 10px 0;
+            scroll-snap-type: x mandatory;
+            z-index: 1000;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 景點小卡片 */
+        .spot-card {
+            flex: 0 0 75%; /* 每次顯示大約一個半的卡片，提醒使用者可以滑動 */
+            margin: 0 10px;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            scroll-snap-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .spot-card h3 { margin: 0; font-size: 1.1rem; }
+        .spot-info { font-size: 0.85rem; color: #666; margin: 5px 0; }
     </style>
 </head>
 <body>
