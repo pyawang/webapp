@@ -198,39 +198,16 @@
                 container.appendChild(card);
             });
             }
-            // 1. 先定義函式
-            function buildCarousel(data, userLocation = null) {
-                // 移除舊的，避免重複生成
-                const existing = document.querySelector('.carousel-container');
-                if (existing) existing.remove();
-
-                const container = document.createElement('div');
-                container.className = 'carousel-container';
-
-                data.features.forEach((feature) => {
-                    const [lng, lat] = feature.geometry.coordinates;
-                    const card = document.createElement('div');
-                    card.className = 'spot-card';
-                    card.innerHTML = `<h3>${feature.properties.name}</h3><p>點擊查看</p>`;
-                    
-                    card.onclick = () => {
-                        map.flyTo([lat, lng], 16);
-                    };
-                    container.appendChild(card);
-                });
-
-                document.body.appendChild(container); // 務必確保這行有執行
-            }
-
-            // 2. 在 fetch 成功後立即執行
-            fetch('points.json')
-                .then(res => res.json())
-                .then(data => {
-                    // 先畫標記
-                    L.geoJSON(data).addTo(map);
-                    // 再畫滑動吧
-                    buildCarousel(data); 
-                });
+            
+            
+        fetch('points.json')
+            .then(res => res.json())
+            .then(data => {
+                // 先畫標記
+                L.geoJSON(data).addTo(map);
+                // 再畫滑動吧
+                buildCarousel(data); 
+            });
     </script>
 </body>
 </html>
