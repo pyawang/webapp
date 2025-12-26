@@ -68,15 +68,14 @@
         /* 橫向滑動容器 */
         .carousel-container {
             position: fixed;
-            bottom: 20px;
+            bottom: 30px; /* 距離底部一點距離 */
             left: 0;
-            width: 100%;
+            width: 100vw; /* 確保寬度佔滿螢幕 */
+            height: 180px; /* 給予固定高度，方便排錯 */
             display: flex;
             overflow-x: auto;
-            padding: 10px 0;
-            scroll-snap-type: x mandatory;
-            z-index: 1000;
-            -webkit-overflow-scrolling: touch;
+            z-index: 9999; /* 必須大於地圖的 z-index */
+            pointer-events: auto; /* 確保可以點擊 */
         }
 
         /* 景點小卡片 */
@@ -105,7 +104,10 @@
         <div id="placeDesc" style="color: #666; font-size: 0.9rem; margin-bottom: 10px;"></div>
         <a id="navBtn" href="#" target="_blank" class="nav-link">開始 Google 導航</a>
     </div>
-
+    <div class="carousel-container">
+    <div class="spot-card"><h3>測試景點 1</h3></div>
+    <div class="spot-card"><h3>測試景點 2</h3></div>
+    </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const map = L.map('map', { zoomControl: false }).setView([23.97, 120.98], 7);
@@ -195,7 +197,40 @@
                 card.onclick = () => map.flyTo([lat, lng], 16);
                 container.appendChild(card);
             });
-        }
+            }
+            // 1. 先定義函式
+            function buildCarousel(data, userLocation = null) {
+                // 移除舊的，避免重複生成
+                const existing = document.querySelector('.carousel-container');
+                if (existing) existing.remove();
+
+                const container = document.createElement('div');
+                container.className = 'carousel-container';
+
+                data.features.forEach((feature) => {
+                    const [lng, lat] = feature.geometry.coordinates;
+                    const card = document.createElement('div');
+                    card.className = 'spot-card';
+                    card.innerHTML = `<h3>${feature.properties.name}</h3><p>點擊查看</p>`;
+                    
+                    card.onclick = () => {
+                        map.flyTo([lat, lng], 16);
+                    };
+                    container.appendChild(card);
+                });
+
+                document.body.appendChild(container); // 務必確保這行有執行
+            }
+
+            // 2. 在 fetch 成功後立即執行
+            fetch('points.json')
+                .then(res => res.json())
+                .then(data => {
+                    // 先畫標記
+                    L.geoJSON(data).addTo(map);
+                    // 再畫滑動吧
+                    buildCarousel(data); 
+                });
     </script>
 </body>
 </html>
