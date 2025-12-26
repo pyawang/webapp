@@ -244,7 +244,7 @@
                 const info = await getGoogleTravelTime(userLocation, {lat: destLat, lng: destLng});
                 
                 if (info) {
-                    card.querySelector('.time-info').innerText = `🚲 騎行約需：${info.duration}`;
+                    card.querySelector('.time-info').innerText = `🛵 機車預計：${info.duration}`;
                     card.querySelector('.dist-info').innerText = `📍 距離：${info.distance}`;
                 }
             }
