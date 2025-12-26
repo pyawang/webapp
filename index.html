@@ -152,6 +152,50 @@
             if (userMarker) map.removeLayer(userMarker);
             userMarker = L.circleMarker(e.latlng, { radius: 8, color: 'white', fillColor: '#007AFF', fillOpacity: 1, weight: 3 }).addTo(map);
         });
+        // 計算兩點間距離 (公里)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // 地球半徑
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return (R * c).toFixed(1);
+        }
+
+        // 建立卡片並放入 Carousel
+        function buildCarousel(data, userLocation = null) {
+            const container = document.createElement('div');
+            container.className = 'carousel-container';
+            document.body.appendChild(container);
+
+            data.features.forEach((feature) => {
+                const [lng, lat] = feature.geometry.coordinates;
+                let distanceText = "開啟定位以計算距離";
+                let timeText = "";
+
+                if (userLocation) {
+                    const dist = calculateDistance(userLocation.lat, userLocation.lng, lat, lng);
+                    distanceText = `距離：${dist} km`;
+                    // 粗略估算時間 (假設平均時速 50km/h)
+                    timeText = `預計車程：${Math.round(dist / 50 * 60)} 分鐘`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'spot-card';
+                card.innerHTML = `
+                    <h3>${feature.properties.name}</h3>
+                    <p class="spot-info">🕒 營業：${feature.properties.open_hours || '未提供'}</p>
+                    <p class="spot-info">📍 ${distanceText}</p>
+                    <p class="spot-info" style="color:#007AFF;">${timeText}</p>
+                    <a class="nav-link" href="https://www.google.com/maps/dir/?api=1&destination=$${lat},${lng}" target="_blank">導航</a>
+                `;
+                
+                // 點擊卡片地圖飛過去
+                card.onclick = () => map.flyTo([lat, lng], 16);
+                container.appendChild(card);
+            });
+        }
     </script>
 </body>
 </html>
